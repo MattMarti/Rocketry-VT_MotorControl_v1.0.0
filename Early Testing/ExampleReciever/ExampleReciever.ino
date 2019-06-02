@@ -69,6 +69,7 @@ void loop()
     uint8_t buf[RH_RF95_MAX_MESSAGE_LEN];
     uint8_t len = sizeof(buf);
     
+    
     if (rf95.recv(buf, &len))
     {
       digitalWrite(LED, HIGH);
@@ -77,8 +78,8 @@ void loop()
       Serial.println((char*)buf);
        Serial.print("RSSI: ");
       Serial.println(rf95.lastRssi(), DEC);
-      rf95.clearRxBuf();
-//       Send a reply
+      
+      // Send a reply
       uint8_t data[] = "And hello back to you";
       rf95.send(data, sizeof(data));
       rf95.waitPacketSent();
