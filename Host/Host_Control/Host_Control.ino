@@ -61,9 +61,10 @@ void loop() {
     delay(50); //give her a moment to cook incase serial feels slow
     size_t available = Serial.available(); //how big is this gonna be
     //delay(100);
+   
     
     uint8_t toSend[available];
-     uint8_t data[] = "And hello back to you";
+     //uint8_t data[] = "And hello back to you";
     //Serial.println(Serial.available());
     //Serial.println(RH_RF95_MAX_MESSAGE_LEN, DEC);
     Serial.readBytes(toSend, available);
@@ -88,16 +89,17 @@ void loop() {
   {
     // Should be a message for us now   
     char buf[RH_RF95_MAX_MESSAGE_LEN];
+    //Serial.println((int)buf);
+    //char buf[0];
     uint8_t len = sizeof(buf);
     
     if (rf95.recv(buf, &len))
     {
-      
+      //insert hub code to decode message
       RH_RF95::printBuffer("Received: ", buf, len);
-      Serial.print("Got: ");
-      Serial.println((char*)buf);
-       Serial.print("RSSI: ");
-      Serial.println(rf95.lastRssi(), DEC);
+      
+      
+     
     }
   }
    
