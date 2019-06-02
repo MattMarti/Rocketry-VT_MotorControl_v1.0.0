@@ -48,20 +48,59 @@ void setup() {
 void loop() {
 
   // put your main code here, to run repeatedly:
-  /*Check for Serial data, ie user inputs*/
-  if (Serial.available() > 0)
+
+
+  /**
+   * We gonna check for user inputs, ie serial data
+   * This data will be sent to the other systems.
+   * 
+   * The serial data in this case corresponds to specific commands to be sent
+   */
+  if (Serial.available() > 0) //check to see if the user man inputted anything
   {
-    delay(50);
-    size_t available = Serial.available();
+    delay(50); //give her a moment to cook incase serial feels slow
+    size_t available = Serial.available(); //how big is this gonna be
     //delay(100);
-    char toSend[available];
+    
+    uint8_t toSend[available];
+     uint8_t data[] = "And hello back to you";
+    //Serial.println(Serial.available());
+    //Serial.println(RH_RF95_MAX_MESSAGE_LEN, DEC);
     Serial.readBytes(toSend, available);
-    Serial.println(toSend);
-    Serial.println(Serial.available());
-    rf95.send(toSend, available);
-    rf95.waitPacketSent();
+    //Serial.println(toSend);
+    //Serial.println(Serial.available());
+    //call a build packet/command function here!
+    rf95.send(toSend, available); 
+    rf95.waitPacketSent(2000);
+    
     Serial.flush();
   }
+
+
+  /**
+   * now we are going to check and see if our friends the
+   * motor controller and ground support system want to tell us how pretty
+   * we are
+   */
+
+   //is a message there?
+   if (rf95.available())
+  {
+    // Should be a message for us now   
+    char buf[RH_RF95_MAX_MESSAGE_LEN];
+    uint8_t len = sizeof(buf);
+    
+    if (rf95.recv(buf, &len))
+    {
+      
+      RH_RF95::printBuffer("Received: ", buf, len);
+      Serial.print("Got: ");
+      Serial.println((char*)buf);
+       Serial.print("RSSI: ");
+      Serial.println(rf95.lastRssi(), DEC);
+    }
+  }
+   
 
 
 }
