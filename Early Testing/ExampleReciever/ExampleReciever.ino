@@ -77,8 +77,8 @@ void loop()
       Serial.println((char*)buf);
        Serial.print("RSSI: ");
       Serial.println(rf95.lastRssi(), DEC);
-      
-      // Send a reply
+      rf95.clearRxBuf();
+//       Send a reply
       uint8_t data[] = "And hello back to you";
       rf95.send(data, sizeof(data));
       rf95.waitPacketSent();
