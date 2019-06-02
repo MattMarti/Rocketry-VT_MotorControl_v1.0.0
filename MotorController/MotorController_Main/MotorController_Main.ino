@@ -7,7 +7,7 @@ const uint8_t RFM95_RST = 2;
 const uint8_t RFM95_INT = 3;
 const double RF95_FREQ = 434.0;
 const size_t BUFFER_SIZE = RH_RF95_MAX_MESSAGE_LEN * 2;
-const uint8_t REPLY_PACKET[7] = {0xAA, 0x14, 0x01, 0x69, 0x04, 0xF3, 0x71};
+const uint8_t REPLY_PACKET[14] = {0xAA, 0x14, 0x01, 0x69, 0x04, 0xF3, 0x71, 0xAA, 0x14, 0x01, 0x69, 0x09, 0xF3, 0x71};
 const uint32_t serial_baudrate = 38400;
 
 RH_RF95 rf95(RFM95_CS, RFM95_INT);
