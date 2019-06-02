@@ -7,7 +7,7 @@ const uint8_t RFM95_RST = 2;
 const uint8_t RFM95_INT = 3;
 const double RF95_FREQ = 434.0;
 const size_t BUFFER_SIZE = RH_RF95_MAX_MESSAGE_LEN * 2;
-const uint8_t REPLY_PACKET[3] = {0x06, 0x21, 0x01};
+const uint8_t REPLY_PACKET[7] = {0xAA, 0x14, 0x01, 0x69, 0x04, 0xF3, 0x71};
 const uint32_t serial_baudrate = 38400;
 
 RH_RF95 rf95(RFM95_CS, RFM95_INT);
@@ -70,6 +70,7 @@ void loop() {
     radio_recieve(buf4);
 
     CircularBuffer<uint8_t, BUFFER_SIZE> fromRadio = parse_packet(buf4);
+    
 
     // echoes, and sends confirmation to, the radio
     echo_radio(fromRadio);
@@ -140,7 +141,7 @@ CircularBuffer<uint8_t, BUFFER_SIZE> parse_packet(CircularBuffer<uint8_t, BUFFER
 }
 
 
-void echo_radio(CircularBuffer<uint8_t, BUFFER_SIZE> &buffer)
+void echo_radio(CircularBuffer<uint8_t, BUFFER_SIZE> &buffer) 
 {
     uint8_t toSend[buffer.size()];
     const size_t bufferSize = buffer.size();
