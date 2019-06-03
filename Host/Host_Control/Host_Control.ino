@@ -265,7 +265,7 @@ void readPacket(CircularBuffer<uint8_t, BUFFER_SIZE> &buffer)
     Serial.println(toSend[0], HEX);
     Serial.println(packData[0], HEX);
 
-    //send
+    //interpret packet with another function
 
 
   }
