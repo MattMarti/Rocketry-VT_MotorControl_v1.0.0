@@ -55,10 +55,10 @@ void setup() {
   digitalWrite(RST_PIN, HIGH);
   delay(10);
 
-  while (!rf95.init())
+  if (!rf95.init())
   {
     Serial.println("LoRa radio init failed");
-    while (1);
+    //while (1);
   }
   Serial.println("LoRa radio init OK!");
 
@@ -66,14 +66,14 @@ void setup() {
   if (!rf95.setFrequency(FREQ))
   {
     Serial.println("setFrequency failed");
-    while (1);
+    //while (1);
   }
 
   Serial.print("Set Freq to: ");
   Serial.println(FREQ);
   rf95.setTxPower(23, false);
   delay(100);
-  //Serial.flush();
+  Serial.flush();
   delay(100);
 
 
@@ -97,16 +97,23 @@ void loop() {
 
     serial_receive(serialBuf);
     CircularBuffer<uint8_t, BUFFER_SIZE> serialPacket = parse_serial_packet(serialBuf);
--   
+    
+    if (serialPacket.size() > 0)
+    {
+//delay(100);
     serialPacket.shift();
+    //delay(100);
+    
     uint8_t data = serialPacket.shift();
     serialPacket.shift();
     packetBuilder(data);
+    rf95.waitPacketSent(2000);
+    }
     
 
     
     //rf95.send(forSend, 3);
-    rf95.waitPacketSent(2000);
+    
 
     Serial.flush();
   }
@@ -123,6 +130,7 @@ void loop() {
 
   //parse otu a packet
   CircularBuffer<uint8_t, BUFFER_SIZE> fromRadio = parse_packet(LoRaBuf);
+ 
 
   readPacket(fromRadio);
 
@@ -179,6 +187,10 @@ CircularBuffer<uint8_t, BUFFER_SIZE> parse_packet(CircularBuffer<uint8_t, BUFFER
 {
   bool parsing = true;
   CircularBuffer<uint8_t, BUFFER_SIZE> packet;
+//  if (buf.size() < 6)
+//  {
+//    parsing = false;
+//  }
   while (parsing && buf.size() > 0)
   {
     Serial.println("in firstwhile");
@@ -195,14 +207,18 @@ CircularBuffer<uint8_t, BUFFER_SIZE> parse_packet(CircularBuffer<uint8_t, BUFFER
     if (buf[1] != 0x14)
     {
       buf.shift();
+      
       continue;
     }
 
     if (buf.size() < 4)
     {
       parsing = false;
+      
+      
       continue;
     }
+    
 
     uint8_t length = buf[2];
     if (buf.size() < 6 + length)
@@ -267,16 +283,24 @@ CircularBuffer<uint8_t, BUFFER_SIZE> parse_serial_packet(CircularBuffer<uint8_t,
 {
     bool parsing = true;
     CircularBuffer<uint8_t, BUFFER_SIZE> packet;
+    if (buf.size() < 3)
+    {
+      parsing = false;
+    }
     while (parsing && buf.size() > 0)
     {
-        Serial.println("in firstwhile");
+    
         while (buf.size() > 0 && buf.first() != 0x00)
         {
             buf.shift();
         }
 
-        if (buf.size() < 3)
+        uint8_t length = 3;
+
+        if (buf.size() < length)
         {
+            parsing = false;
+           //break;
             continue;
         }
 
@@ -286,12 +310,12 @@ CircularBuffer<uint8_t, BUFFER_SIZE> parse_serial_packet(CircularBuffer<uint8_t,
             continue;
         }
 
-        uint8_t length = 3;
-        if (buf.size() < length)
-        {
-            parsing = false;
-            continue;
-        }
+//        uint8_t length = 3;
+//        if (buf.size() < length)
+//        {
+//            parsing = false;
+//            continue;
+//        }
 
         for (int i = 0; i < length; ++i)
         {
@@ -299,10 +323,16 @@ CircularBuffer<uint8_t, BUFFER_SIZE> parse_serial_packet(CircularBuffer<uint8_t,
         }
         return packet;
     }
+   
+    
     return packet;
 }
 
 void packetBuilder(uint8_t packet){
+//  for (int i =0; i < 7; i++)
+//  {
+//  Serial.println(LAUNCH_PACKET[i], HEX);
+//  }
   switch (packet) {
     case SHOW_COMMANDS: break;
     case UNLOCK1: break;
@@ -315,6 +345,7 @@ void packetBuilder(uint8_t packet){
     case DISCONNECT_FILL: rf95.send(DISCONNECT_FILL_PACKET, 7);
                      break;
     case LAUNCH: rf95.send(LAUNCH_PACKET, 7);
+    Serial.println("launch sent");
                      break;
   }
 }

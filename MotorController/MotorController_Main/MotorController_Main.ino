@@ -152,6 +152,7 @@ void echo_radio(CircularBuffer<uint8_t, BUFFER_SIZE> &buffer)
 
     if (bufferSize > 0)
     {
-        rf95.send(REPLY_PACKET, sizeof(REPLY_PACKET));
+      //uint8_t x[2] = {};
+        rf95.send(toSend, bufferSize);
     }
 }
