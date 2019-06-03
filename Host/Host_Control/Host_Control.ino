@@ -270,6 +270,8 @@ void readPacket(CircularBuffer<uint8_t, BUFFER_SIZE> &buffer)
     Serial.println(packData[0], HEX);
 
     //interpret packet with another function
+    Serial.println("size of");
+    Serial.println(sizeof(toSend), DEC);
     actOn(toSend);
 
   }
@@ -410,9 +412,11 @@ void actOn(uint8_t packdata[])
 
 boolean sameAs(uint8_t data[], uint8_t target[])
 {
+  Serial.println(sizeof(data), DEC);
   if (sizeof(data) != sizeof(target))
   {
     return false;
+    Serial.println("Fuck you");
   }
   else
   {
