@@ -76,6 +76,8 @@ void setup() {
   Serial.print("Set Freq to: ");
   Serial.println(FREQ);
   rf95.setTxPower(23, false);
+
+  Serial.println("To Show Commands Type in HEX: 0x00 0x03 0xFF");
   delay(100);
   Serial.flush();
   delay(100);
@@ -344,7 +346,8 @@ void packetBuilder(uint8_t packet){
 //  Serial.println(LAUNCH_PACKET[i], HEX);
 //  }
   switch (packet) {
-    case SHOW_COMMANDS: break;
+    case SHOW_COMMANDS: printCommands();
+                  break;
     case UNLOCK1: break;
     case UNLOCK2: break;
     case UNLOCK3: break;
@@ -366,18 +369,7 @@ void actOn(uint8_t packdata[], int psize)
   {
     Serial.println("PING STATE");
   }
-  if (sameAs(packdata, FILL_PACKET, 7, psize))
-  {
-    Serial.println("FILL");
-  }
-  if (sameAs(packdata, DISCONNECT_FILL_PACKET, 7, psize))
-  {
-    Serial.println("DISCONNECT FILL");
-  }
-  if (sameAs(packdata, LAUNCH_PACKET, 7, psize))
-  {
-    Serial.println("LAUNCH");
-  }
+  
   if (sameAs(packdata, MC_FILL_STATE, 7, psize))
   {
     Serial.println("MC FILL STATE");

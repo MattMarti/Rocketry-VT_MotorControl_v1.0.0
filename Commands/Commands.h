@@ -55,6 +55,7 @@ namespace Commands
 
 }
 
+void printCommands();
 
 
 #endif // HOST_SERIAL_INTERPRET_H_INCLUDED
