@@ -36,7 +36,11 @@ void packetBuilder(uint8_t packet);
 */
 void radio_recieve(CircularBuffer<uint8_t, BUFFER_SIZE> &buffer);
 
-void readPacket(CircularBuffer<uint8_t, BUFFER_SIZE> &buffer) ;
+void readPacket(CircularBuffer<uint8_t, BUFFER_SIZE> &buffer);
+
+void actOn(uint8_t packdata[]);
+
+boolean sameAs(uint8_t data[], uint8_t target[]);
 
 
 void setup() {
@@ -266,7 +270,7 @@ void readPacket(CircularBuffer<uint8_t, BUFFER_SIZE> &buffer)
     Serial.println(packData[0], HEX);
 
     //interpret packet with another function
-
+    actOn(toSend);
 
   }
 }
@@ -347,5 +351,78 @@ void packetBuilder(uint8_t packet){
     case LAUNCH: rf95.send(LAUNCH_PACKET, 7);
     Serial.println("launch sent");
                      break;
+  }
+}
+
+void actOn(uint8_t packdata[])
+{
+  if (sameAs(packdata, PING_STATE_PACKET))
+  {
+    Serial.println("PING STATE");
+  }
+  if (sameAs(packdata, FILL_PACKET))
+  {
+    Serial.println("FILL");
+  }
+  if (sameAs(packdata, DISCONNECT_FILL_PACKET))
+  {
+    Serial.println("DISCONNECT FILL");
+  }
+  if (sameAs(packdata, LAUNCH_PACKET))
+  {
+    Serial.println("LAUNCH");
+  }
+  if (sameAs(packdata, MC_FILL_STATE))
+  {
+    Serial.println("MC FILL STATE");
+  }
+  if (sameAs(packdata, MC_IDLE_STATE))
+  {
+    Serial.println("MC IDLE STATE");
+  }
+  if (sameAs(packdata, MC_READY_STATE))
+  {
+    Serial.println("MC READY STATE");
+  }
+  if (sameAs(packdata, MC_LAUNCH_STATE))
+  {
+    Serial.println("MC LAUNCH STATE");
+  }
+  if (sameAs(packdata, GS_FILL_STATE))
+  {
+    Serial.println("GS Fill State");
+  }
+  if (sameAs(packdata, GS_IDLE_STATE))
+  {
+    Serial.println("GS IDLE State");
+  }
+  if (sameAs(packdata, GS_READY_STATE))
+  {
+    Serial.println("GS READY State");
+  }
+  if (sameAs(packdata, GS_LAUNCH_STATE))
+  {
+    Serial.println("GS LAUNCH State");
+  }
+    
+}
+
+
+boolean sameAs(uint8_t data[], uint8_t target[])
+{
+  if (sizeof(data) != sizeof(target))
+  {
+    return false;
+  }
+  else
+  {
+    for (int i = 0; i < sizeof(data); i++)
+    {
+      if (data[i]!=target[i])
+      {
+        return false;
+      }
+    }
+    return true;
   }
 }
