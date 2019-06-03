@@ -3,7 +3,10 @@
 #include <SPI.h>
 #include <RH_RF95.h>
 //#include <packet_interpret.h>
+#include <Commands.h>
 
+//using namespace Commands;
+using namespace Commands;
 using namespace LoRa;
 using namespace User;
 
@@ -82,7 +85,6 @@ void loop() {
   /**
      We gonna check for user inputs, ie serial data
      This data will be sent to the other systems.
-
      The serial data in this case corresponds to specific commands to be sent
   */
   if (Serial.available() > 0) //check to see if the user man inputted anything
@@ -91,13 +93,15 @@ void loop() {
 
     serial_receive(serialBuf);
     CircularBuffer<uint8_t, BUFFER_SIZE> serialPacket = parse_serial_packet(serialBuf);
--
-    uint8_t data = serialPacket[1];
+-   
+    serialPacket.shift();
+    uint8_t data = serialPacket.shift();
+    serialPacket.shift();
     packetBuilder(data);
     
 
     
-    rf95.send(forSend, 3);
+    //rf95.send(forSend, 3);
     rf95.waitPacketSent(2000);
 
     Serial.flush();
