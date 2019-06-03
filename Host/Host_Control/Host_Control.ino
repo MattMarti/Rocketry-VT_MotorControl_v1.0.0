@@ -3,7 +3,9 @@
 #include <SPI.h>
 #include <RH_RF95.h>
 //#include <packet_interpret.h>
+//#include <Commands.h>
 
+//using namespace Commands;
 using namespace LoRa;
 using namespace User;
 
@@ -91,13 +93,15 @@ void loop() {
 
     serial_receive(serialBuf);
     CircularBuffer<uint8_t, BUFFER_SIZE> serialPacket = parse_serial_packet(serialBuf);
--
-    uint8_t data = serialPacket[1];
+-   
+    serialPacket.shift();
+    uint8_t data = serialPacket.shift();
+    serialPacket.shift();
     packetBuilder(data);
     
 
     
-    rf95.send(forSend, 3);
+    //rf95.send(forSend, 3);
     rf95.waitPacketSent(2000);
 
     Serial.flush();
@@ -295,18 +299,18 @@ CircularBuffer<uint8_t, BUFFER_SIZE> parse_serial_packet(CircularBuffer<uint8_t,
 }
 
 void packetBuilder(uint8_t packet){
-  switch (packet) {
-    case SHOW_COMMANDS: break;
-    case UNLOCK1: break;
-    case UNLOCK2: break;
-    case UNLOCK3: break;
-    case PING_STATE: rf95.send(PING_STATE_PACKET, 7);
-                     break;
-    case FILL: rf95.send(FILL_PACKET, 7);
-                     break;
-    case DISCONNECT_FILL: rf95.send(DISCONNECT_FILL_PACKET, 7);
-                     break;
-    case LAUNCH: rf95.send(LAUNCH_PACKET, 7);
-                     break;
-  }
+//  switch (packet) {
+//    case SHOW_COMMANDS: break;
+//    case UNLOCK1: break;
+//    case UNLOCK2: break;
+//    case UNLOCK3: break;
+//    case PING_STATE: rf95.send(PING_STATE_PACKET, 7);
+//                     break;
+//    case FILL: rf95.send(FILL_PACKET, 7);
+//                     break;
+//    case DISCONNECT_FILL: rf95.send(DISCONNECT_FILL_PACKET, 7);
+//                     break;
+//    case LAUNCH: rf95.send(LAUNCH_PACKET, 7);
+//                     break;
+//  }
 }
