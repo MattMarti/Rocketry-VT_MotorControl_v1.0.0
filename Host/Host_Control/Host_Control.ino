@@ -38,7 +38,7 @@ void radio_recieve(CircularBuffer<uint8_t, BUFFER_SIZE> &buffer);
 
 void readPacket(CircularBuffer<uint8_t, BUFFER_SIZE> &buffer);
 
-void actOn(uint8_t packdata[]);
+void actOn(uint8_t packdata[], int packSize);
 
 boolean sameAs(uint8_t data[], uint8_t target[]);
 
@@ -270,9 +270,13 @@ void readPacket(CircularBuffer<uint8_t, BUFFER_SIZE> &buffer)
     Serial.println(packData[0], HEX);
 
     //interpret packet with another function
-    Serial.println("size of");
-    Serial.println(sizeof(toSend), DEC);
-    actOn(toSend);
+
+    //Serial.println("size of");
+    //Serial.println(sizeof(toSend), DEC);
+    //actOn(toSend);
+
+    actOn(toSend, bufferSize);
+
 
   }
 }
@@ -356,53 +360,53 @@ void packetBuilder(uint8_t packet){
   }
 }
 
-void actOn(uint8_t packdata[])
+void actOn(uint8_t packdata[], int psize)
 {
-  if (sameAs(packdata, PING_STATE_PACKET))
+  if (sameAs(packdata, PING_STATE_PACKET, 7, psize))
   {
     Serial.println("PING STATE");
   }
-  if (sameAs(packdata, FILL_PACKET))
+  if (sameAs(packdata, FILL_PACKET, 7, psize))
   {
     Serial.println("FILL");
   }
-  if (sameAs(packdata, DISCONNECT_FILL_PACKET))
+  if (sameAs(packdata, DISCONNECT_FILL_PACKET, 7, psize))
   {
     Serial.println("DISCONNECT FILL");
   }
-  if (sameAs(packdata, LAUNCH_PACKET))
+  if (sameAs(packdata, LAUNCH_PACKET, 7, psize))
   {
     Serial.println("LAUNCH");
   }
-  if (sameAs(packdata, MC_FILL_STATE))
+  if (sameAs(packdata, MC_FILL_STATE, 7, psize))
   {
     Serial.println("MC FILL STATE");
   }
-  if (sameAs(packdata, MC_IDLE_STATE))
+  if (sameAs(packdata, MC_IDLE_STATE, psize, 7))
   {
     Serial.println("MC IDLE STATE");
   }
-  if (sameAs(packdata, MC_READY_STATE))
+  if (sameAs(packdata, MC_READY_STATE, psize, 7))
   {
     Serial.println("MC READY STATE");
   }
-  if (sameAs(packdata, MC_LAUNCH_STATE))
+  if (sameAs(packdata, MC_LAUNCH_STATE, psize, 7))
   {
     Serial.println("MC LAUNCH STATE");
   }
-  if (sameAs(packdata, GS_FILL_STATE))
+  if (sameAs(packdata, GS_FILL_STATE, 7, psize))
   {
     Serial.println("GS Fill State");
   }
-  if (sameAs(packdata, GS_IDLE_STATE))
+  if (sameAs(packdata, GS_IDLE_STATE, 7, psize))
   {
     Serial.println("GS IDLE State");
   }
-  if (sameAs(packdata, GS_READY_STATE))
+  if (sameAs(packdata, GS_READY_STATE, 7, psize))
   {
     Serial.println("GS READY State");
   }
-  if (sameAs(packdata, GS_LAUNCH_STATE))
+  if (sameAs(packdata, GS_LAUNCH_STATE, psize, 7))
   {
     Serial.println("GS LAUNCH State");
   }
@@ -410,17 +414,20 @@ void actOn(uint8_t packdata[])
 }
 
 
-boolean sameAs(uint8_t data[], uint8_t target[])
+boolean sameAs(uint8_t data[], uint8_t target[], int L1, int L2)
 {
-  Serial.println(sizeof(data), DEC);
+
+ // Serial.println(sizeof(data), DEC);
   if (sizeof(data) != sizeof(target))
+
+
   {
     return false;
-    Serial.println("Fuck you");
+    //Serial.println("Fuck you");
   }
   else
   {
-    for (int i = 0; i < sizeof(data); i++)
+    for (int i = 0; i < L1; i++)
     {
       if (data[i]!=target[i])
       {
