@@ -19,10 +19,15 @@ namespace Commands
      const uint8_t UNLOCK1 = 0x04; //unlock 1 for transmitting, HC
      const uint8_t UNLOCK2 = 0x05; //unlock 2 for transmitting, HC
      const uint8_t UNLOCK3 = 0x06; //unlock 3, if all unlocked allow for certian commands to be sent, HC
-    const uint8_t PING_STATE = 0x07; //PING STATE, ALL
+    const uint8_t PING_STATE_All = 0x07; //PING STATE, ALL
+
      const uint8_t FILL = 0x08; //ALL
      const uint8_t DISCONNECT_FILL = 0x09; //GS
      const uint8_t LAUNCH = 0x10; //HC, MC
+     const uint8_t PING_STATE_MC = 0x19; //PING STATE, motor controller
+     const uint8_t PING_STATE_GS = 0x20; //PING STATE, ground support
+
+     const uint8_t PING_STATE_HC = 0x21; //PING STATE, host
 
      //specific meaning must have been sent FROM
      //0xAC = host specific
@@ -34,7 +39,8 @@ namespace Commands
 
 
 
-     const uint8_t PING_STATE_PACKET[7] = {0xAA, 0x14, 0x01, 0xAC, 0x07, 0xAB, 0xAD};
+     const uint8_t PING_STATE_PACKET_MC[7] = {0xAA, 0x14, 0x01, 0xAC, 0x019, 0xAB, 0xAD};
+     const uint8_t PING_STATE_PACKET_GS[7] = {0xAA, 0x14, 0x01, 0xAC, 0x20, 0xAB, 0xAD};
      const uint8_t FILL_PACKET[7] = {0xAA, 0x14, 0x01, 0xAC, 0x08, 0xAC, 0xAD};
     const uint8_t DISCONNECT_FILL_PACKET[7] = {0xAA, 0x14, 0x01, 0xAC, 0x09, 0xDD, 0xDC};
     const uint8_t LAUNCH_PACKET[7] = {0xAA, 0x14, 0x01, 0xAC, 0x10, 0xDE, 0xFE};
@@ -49,6 +55,7 @@ namespace Commands
     const uint8_t GS_IDLE_STATE[7] = {0xAA, 0x14, 0x01, 0xF5, 0x16, 0xDF, 0x75}; //Represnts GROUND SUPPORT idle state, not ready to do anythin
     const uint8_t GS_READY_STATE[7] = {0xAA, 0x14, 0x01, 0xF5, 0x17, 0xEF, 0x7E}; //Represnets GORUND SUPPORT ready to start doing things
     const uint8_t GS_LAUNCH_STATE[7] = {0xAA, 0x14, 0x01, 0xF5, 0x18, 0xA1, 0xE1}; //represnets GROUND launched
+
 
 
 

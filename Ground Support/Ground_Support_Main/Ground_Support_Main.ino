@@ -1,4 +1,4 @@
-#include <motor_controller_config.h>
+#include <ground_support_config.h>
 #include <CircularBuffer.h>
 #include <SPI.h>
 #include <RH_RF95.h>
@@ -45,7 +45,7 @@ boolean sameAs(uint8_t data[], uint8_t target[]);
 
 void setup() {
   // put your setup code here, to run once:
-  UserInput.begin(BAUD); //begin comms for user inputting (Serial)
+  Serial.begin(BAUD); //begin comms for user inputting (Serial)
 
   Serial.println("2019 Rocketry at VT Launch Control System");
 
@@ -241,21 +241,21 @@ void readPacket(CircularBuffer<uint8_t, BUFFER_SIZE> &buffer)
 
 void actOn(uint8_t packdata[], int psize)
 {
-  if (sameAs(packdata, PING_STATE_PACKET_MC, 7, psize))
+  if (sameAs(packdata, PING_STATE_PACKET_GS, 7, psize))
   {
     Serial.println("sent state");
-    rf95.send(MC_FILL_STATE, sizeof(MC_FILL_STATE));
+    rf95.send(GS_FILL_STATE, sizeof(GS_FILL_STATE));
     rf95.waitPacketSent(200);
   }
   if (sameAs(packdata, FILL_PACKET, 7, psize))
   {
-    Serial.println("MC FILL");
+    Serial.println("GS FILL");
     
   }
   if (sameAs(packdata, LAUNCH_PACKET, 7, psize))
   {
-    Serial.println("MC LAUNCH");
- 
+    Serial.println("GS LAUNCH");
+   
   }
 
     

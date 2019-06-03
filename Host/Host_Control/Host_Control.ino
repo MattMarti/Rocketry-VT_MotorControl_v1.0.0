@@ -89,6 +89,7 @@ void setup() {
 
 void loop() {
 
+
   // put your main code here, to run repeatedly:
 
 
@@ -113,7 +114,7 @@ void loop() {
     uint8_t data = serialPacket.shift();
     serialPacket.shift();
     packetBuilder(data);
-    rf95.waitPacketSent(2000);
+    rf95.waitPacketSent(200);
     }
     
 
@@ -179,10 +180,10 @@ void radio_recieve(CircularBuffer<uint8_t, BUFFER_SIZE> &buffer)
   {
     if (rf95.recv(buf, &len))
     {
-      Serial.println("Got Reply: ");
+     // Serial.println("Got Reply: ");
       for (int i = 0; i < len && buffer.available() > 0; i++)
       {
-        Serial.println(buf[i], HEX);
+       // Serial.println(buf[i], HEX);
         buffer.push(buf[i]);
       }
     }
@@ -199,7 +200,7 @@ CircularBuffer<uint8_t, BUFFER_SIZE> parse_packet(CircularBuffer<uint8_t, BUFFER
 //  }
   while (parsing && buf.size() > 0)
   {
-    Serial.println("in firstwhile");
+    //Serial.println("in firstwhile");
     while (buf.size() > 0 && buf.first() != 0xAA)
     {
       buf.shift();
@@ -255,21 +256,21 @@ void readPacket(CircularBuffer<uint8_t, BUFFER_SIZE> &buffer)
 
   if (bufferSize > 0)
   {
-    uint8_t dataLen = toSend[2];
-    uint8_t ID = toSend[3];
-    uint8_t checkSumBytes[2];
-    uint8_t packData[dataLen];
-    for (int i = 0; i < dataLen; i++ )
-    {
-      packData[i] = toSend[(4 + i)];
+   // uint8_t dataLen = toSend[2];
+   // uint8_t ID = toSend[3];
+   // uint8_t checkSumBytes[2];
+   // uint8_t packData[dataLen];
+   // for (int i = 0; i < dataLen; i++ )
+   // {
+     // packData[i] = toSend[(4 + i)];
 
-    }
-    checkSumBytes[0] = toSend[(4 + dataLen)];
-    checkSumBytes[1] = toSend[(5 + dataLen)];
-    Serial.println("Fire Torpedoes!");
+   // }
+    //checkSumBytes[0] = toSend[(4 + dataLen)];
+    //checkSumBytes[1] = toSend[(5 + dataLen)];
+   // Serial.println("Fire Torpedoes!");
 
-    Serial.println(toSend[0], HEX);
-    Serial.println(packData[0], HEX);
+    //Serial.println(toSend[0], HEX);
+    //Serial.println(packData[0], HEX);
 
     //interpret packet with another function
 
@@ -341,6 +342,7 @@ CircularBuffer<uint8_t, BUFFER_SIZE> parse_serial_packet(CircularBuffer<uint8_t,
 }
 
 void packetBuilder(uint8_t packet){
+  //uint8_t pee[3] = {0x00, 0x21, 0xFF};
 //  for (int i =0; i < 7; i++)
 //  {
 //  Serial.println(LAUNCH_PACKET[i], HEX);
@@ -351,13 +353,43 @@ void packetBuilder(uint8_t packet){
     case UNLOCK1: break;
     case UNLOCK2: break;
     case UNLOCK3: break;
-    case PING_STATE: rf95.send(PING_STATE_PACKET, 7);
+    case PING_STATE_All: 
+                     rf95.send(PING_STATE_PACKET_MC, 7);
+                     rf95.waitPacketSent(200);
+                       radio_recieve(LoRaBuf);
+                      rf95.send(PING_STATE_PACKET_GS, 7);
+                     rf95.waitPacketSent(200);
+                       radio_recieve(LoRaBuf);
+                       
+                       Serial.println("statler HC is stated");
+                       
                      break;
-    case FILL: rf95.send(FILL_PACKET, 7);
+    case PING_STATE_MC: 
+                     rf95.send(PING_STATE_PACKET_MC, 7);
+                     rf95.waitPacketSent(200);
                      break;
-    case DISCONNECT_FILL: rf95.send(DISCONNECT_FILL_PACKET, 7);
+                       
+    case PING_STATE_GS: 
+                     rf95.send(PING_STATE_PACKET_GS, 7);
+                     rf95.waitPacketSent(200);
                      break;
-    case LAUNCH: rf95.send(LAUNCH_PACKET, 7);
+
+    case PING_STATE_HC:
+                    Serial.println("HC state is go fuck a duck");
+                    break;
+               
+            
+    case FILL: 
+                     rf95.send(FILL_PACKET, 7);
+                     rf95.waitPacketSent(200);
+                     break;
+    case DISCONNECT_FILL: 
+                     rf95.send(DISCONNECT_FILL_PACKET, 7);
+                     rf95.waitPacketSent(200);
+                     break;
+    case LAUNCH: 
+                    rf95.send(LAUNCH_PACKET, 7);
+                    rf95.waitPacketSent(200);
     Serial.println("launch sent");
                      break;
   }
@@ -365,10 +397,7 @@ void packetBuilder(uint8_t packet){
 
 void actOn(uint8_t packdata[], int psize)
 {
-  if (sameAs(packdata, PING_STATE_PACKET, 7, psize))
-  {
-    Serial.println("PING STATE");
-  }
+
   
   if (sameAs(packdata, MC_FILL_STATE, 7, psize))
   {
