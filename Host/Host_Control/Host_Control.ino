@@ -130,22 +130,29 @@ void loop() {
   */
   if (Serial.available() > 0) //check to see if the user man inputted anything
   {
+   
     delay(50); //give her a moment to cook incase serial feels slow
 
     serial_receive(serialBuf);
+
     CircularBuffer<uint8_t, BUFFER_SIZE> serialPacket = parse_serial_packet(serialBuf);
-    
+ 
     
     if (serialPacket.size() > 0)
     {
 //delay(100);
+
     serialPacket.shift();
     //delay(100);
-    
+   
     uint8_t data = serialPacket.shift();
+   
     serialPacket.shift();
+   
     packetBuilder(data);
+  
     rf95.waitPacketSent(200);
+
     }
     
 
@@ -154,6 +161,7 @@ void loop() {
     
 
     Serial.flush();
+
   }
 
 
@@ -164,6 +172,7 @@ void loop() {
   */
 
   //read whats on the radio
+
   radio_recieve(LoRaBuf);
 
   //parse otu a packet
@@ -171,8 +180,6 @@ void loop() {
  
 
   readPacket(fromRadio);
-
-
 
   //   //is a message there?
   //   if (rf95.available())
@@ -207,7 +214,7 @@ void radio_recieve(CircularBuffer<uint8_t, BUFFER_SIZE> &buffer)
   uint8_t buf[RH_RF95_MAX_MESSAGE_LEN];
   uint8_t len = sizeof(buf);
 
-  if (rf95.waitAvailableTimeout(500))
+  if (rf95.waitAvailableTimeout(100))
   {
     if (rf95.recv(buf, &len))
     {
@@ -223,6 +230,7 @@ void radio_recieve(CircularBuffer<uint8_t, BUFFER_SIZE> &buffer)
 
 CircularBuffer<uint8_t, BUFFER_SIZE> parse_packet(CircularBuffer<uint8_t, BUFFER_SIZE> &buf)
 {
+
   bool parsing = true;
   CircularBuffer<uint8_t, BUFFER_SIZE> packet;
 //  if (buf.size() < 6)
@@ -277,6 +285,7 @@ CircularBuffer<uint8_t, BUFFER_SIZE> parse_packet(CircularBuffer<uint8_t, BUFFER
 /*we gonna use this to send the packet to be analyzied and commanded*/
 void readPacket(CircularBuffer<uint8_t, BUFFER_SIZE> &buffer)
 {
+  
   uint8_t toSend[buffer.size()];
   const size_t bufferSize = buffer.size();
   for (size_t i = 0; buffer.size() > 0; i++) //lets use this loop to store info, notice that this will clear the buffer
@@ -319,6 +328,7 @@ void serial_receive(CircularBuffer<uint8_t, BUFFER_SIZE> &buffer)
 {
     while (buffer.available() > 0 && Serial.available() > 0)
     {
+      
         buffer.push(Serial.read());
     }
 }
@@ -333,10 +343,11 @@ CircularBuffer<uint8_t, BUFFER_SIZE> parse_serial_packet(CircularBuffer<uint8_t,
     }
     while (parsing && buf.size() > 0)
     {
-    
+   
         while (buf.size() > 0 && buf.first() != 0x00)
         {
             buf.shift();
+         
         }
 
         uint8_t length = 3;
@@ -373,50 +384,63 @@ CircularBuffer<uint8_t, BUFFER_SIZE> parse_serial_packet(CircularBuffer<uint8_t,
 }
 
 void packetBuilder(uint8_t packet){
-  //uint8_t pee[3] = {0x00, 0x21, 0xFF};
-//  for (int i =0; i < 7; i++)
-//  {
-//  Serial.println(LAUNCH_PACKET[i], HEX);
-//  }
+
+
   switch (packet) {
-    case SHOW_COMMANDS: printCommands();
+
+    case SHOW_COMMANDS: 
+
+    printCommands();
                   break;
     case UNLOCK1:  
+   
                   unlock1 = true;
+                  Serial.println("unlocked lock 1");
                    break;
     case UNLOCK2: 
+   
                    unlock2 = true;
+                   Serial.println("unlocked lock 2");
                    break;
     case UNLOCK3: 
+;
                   unlock3 = true;
+                   Serial.println("unlocked lock 3");
                   break;
     case PING_STATE_All: 
+  
                     pingAll();
                        
                      break;
     case PING_STATE_MC: 
+
                      pingMCstate();
                      break;
                        
     case PING_STATE_GS: 
-                     
+   
+  
                      pingGSstate();
                      break;
 
     case PING_STATE_HC:
+    
                     pingHCstate();
                     break;
                
             
     case FILL: 
+    
                      rf95.send(FILL_PACKET, 7);
                      rf95.waitPacketSent(200);
                      break;
     case DISCONNECT_FILL: 
+    
                      rf95.send(DISCONNECT_FILL_PACKET, 7);
                      rf95.waitPacketSent(200);
                      break;
     case LAUNCH: 
+  
                     rf95.send(LAUNCH_PACKET, 7);
                     rf95.waitPacketSent(200);
     Serial.println("launch sent");
@@ -424,12 +448,13 @@ void packetBuilder(uint8_t packet){
  
                      break;
   }
+ 
 }
 
 void actOn(uint8_t packdata[], int psize)
 {
 
-  
+     
   if (sameAs(packdata, MC_FILL_STATE, 7, psize))
   {
     Serial.println("MC FILL STATE");
@@ -506,18 +531,11 @@ void checkReadyToTrans()
      if (unlock1 && unlock2 &&unlock3)
      {
       readyToTrans = true;
-      Serial.println("Ready to transmit commands");
+      //Serial.println("Ready to transmit commands");
      }
-     else
-     {
-      Serial.println("Transmit commands locked");
-      pingHCstate();
-     }
+     
   }
-  else
-  {
-    Serial.println("Ready to transmit commands");
-  }
+ 
 }
 void checkReadyToFill()
 {
@@ -535,18 +553,13 @@ void checkReadyToFill()
       readPacket(radPac);
       if (readyToTrans && GSready && MCready)
       {
-        Serial.println("ready to fill");
+       // Serial.println("ready to fill");
+       readyToFill = true;
       }
-      else
-      {
-        Serial.println("Fill locked");
-      }
+     
       
   }
-  else
-  {
-    Serial.println("Ready to fill");
-  }
+ 
 }
 void checkReadyToLaunch()
 {
@@ -564,18 +577,13 @@ void checkReadyToLaunch()
       readPacket(radPac);
       if (readyToFill && feedDisconn && tankFull && readyToTrans)
       {
-        Serial.println("ready to launch");
+      //  Serial.println("ready to launch");
+      readyToLaunch = true;
       }
-      else
-      {
-        Serial.println("Launch Locked");
-      }
+    
       
   }
-  else
-  {
-    Serial.println("Ready to launch");
-  }
+  
 }
 
 
@@ -593,6 +601,7 @@ void checkReadyToLaunch()
  }
  void pingHCstate()
  {
+ 
   if (readyToLaunch)
   {
     Serial.println("Launch Unlocked");
@@ -605,11 +614,16 @@ void checkReadyToLaunch()
   {
     Serial.println("Transmitting Commands Unlocked");
   }
+  else if (unlock1 && unlock2 && unlock3)
+  {
+    readyToTrans = true;
+    Serial.println("Ready to transmit commands");
+  }
   else
   {
   if (unlock3)
   {
-    Serial.print("Unlocked lock 3");
+    Serial.println("Unlocked lock 3");
   }
   if (unlock2)
   {
@@ -621,7 +635,7 @@ void checkReadyToLaunch()
   }
   if (!(unlock1 || unlock2 || unlock3))
   {
-    Serial.println("All locked");
+    Serial.println("All Host Transmisson locks locked");
   }
   }
  }
