@@ -4,13 +4,15 @@
 #include <RH_RF95.h>
 //#include <packet_interpret.h>
 
-#include <Commands.h>
+#include <HC_Commands.h>
 
 
+//GS = Ground Support
+//MC = Motor Controller
+//HC = Host Computer (this)
 
 
-
-using namespace Commands;
+using namespace HC_Commands;
 using namespace LoRa;
 using namespace User;
 
@@ -41,6 +43,34 @@ void readPacket(CircularBuffer<uint8_t, BUFFER_SIZE> &buffer);
 void actOn(uint8_t packdata[], int packSize);
 
 boolean sameAs(uint8_t data[], uint8_t target[]);
+
+/*
+ * state variables
+ */
+ bool readyToTrans = false; //need all unlocks = true
+ bool readyToFill = false;  //need readyToTrans = true and MC and GS to be ready
+ bool readyToLaunch = false; //need feedline disconnected, tank filled, and above true
+ bool unlock1 = false; 
+ bool unlock2 = false;
+ bool unlock3 = false;
+ bool MCready = false; //is motor ready
+ bool GSready = false;
+ bool tankFull = false;
+ bool feedDisconn = false;
+ 
+
+/*Functions to checkand set values for predicates*/
+void checkReadyToTrans();
+void checkReadyToFill();
+void checkReadyToLaunch();
+
+
+ /*functions to ping GS and MC states, and all */
+ void pingMCstate();
+ void pingGSstate();
+ void pingHCstate();
+ void pingAll();
+
 
 
 void setup() {
@@ -104,6 +134,7 @@ void loop() {
 
     serial_receive(serialBuf);
     CircularBuffer<uint8_t, BUFFER_SIZE> serialPacket = parse_serial_packet(serialBuf);
+    
     
     if (serialPacket.size() > 0)
     {
@@ -176,7 +207,7 @@ void radio_recieve(CircularBuffer<uint8_t, BUFFER_SIZE> &buffer)
   uint8_t buf[RH_RF95_MAX_MESSAGE_LEN];
   uint8_t len = sizeof(buf);
 
-  if (rf95.waitAvailableTimeout(100))
+  if (rf95.waitAvailableTimeout(500))
   {
     if (rf95.recv(buf, &len))
     {
@@ -350,32 +381,30 @@ void packetBuilder(uint8_t packet){
   switch (packet) {
     case SHOW_COMMANDS: printCommands();
                   break;
-    case UNLOCK1: break;
-    case UNLOCK2: break;
-    case UNLOCK3: break;
+    case UNLOCK1:  
+                  unlock1 = true;
+                   break;
+    case UNLOCK2: 
+                   unlock2 = true;
+                   break;
+    case UNLOCK3: 
+                  unlock3 = true;
+                  break;
     case PING_STATE_All: 
-                     rf95.send(PING_STATE_PACKET_MC, 7);
-                     rf95.waitPacketSent(200);
-                       radio_recieve(LoRaBuf);
-                      rf95.send(PING_STATE_PACKET_GS, 7);
-                     rf95.waitPacketSent(200);
-                       radio_recieve(LoRaBuf);
-                       
-                       Serial.println("statler HC is stated");
+                    pingAll();
                        
                      break;
     case PING_STATE_MC: 
-                     rf95.send(PING_STATE_PACKET_MC, 7);
-                     rf95.waitPacketSent(200);
+                     pingMCstate();
                      break;
                        
     case PING_STATE_GS: 
-                     rf95.send(PING_STATE_PACKET_GS, 7);
-                     rf95.waitPacketSent(200);
+                     
+                     pingGSstate();
                      break;
 
     case PING_STATE_HC:
-                    Serial.println("HC state is go fuck a duck");
+                    pingHCstate();
                     break;
                
             
@@ -391,6 +420,8 @@ void packetBuilder(uint8_t packet){
                     rf95.send(LAUNCH_PACKET, 7);
                     rf95.waitPacketSent(200);
     Serial.println("launch sent");
+   
+ 
                      break;
   }
 }
@@ -440,8 +471,6 @@ boolean sameAs(uint8_t data[], uint8_t target[], int L1, int L2)
 
  // Serial.println(sizeof(data), DEC);
   if (sizeof(data) != sizeof(target))
-
-
   {
     return false;
     //Serial.println("Fuck you");
@@ -458,3 +487,149 @@ boolean sameAs(uint8_t data[], uint8_t target[], int L1, int L2)
     return true;
   }
 }
+
+
+
+
+// bool readyToTrans = false; //need all unlocks = true
+// bool readyToFill = false;  //need readyToTrans = true and MC and GS to be ready
+// bool readyToLaunch = false; //need feedline disconnected, tank filled, and above true
+// bool unlock1 = false; 
+// bool unlock2 = false;
+// bool unlock3 = false;
+
+/*Functions to checkand set values for predicates*/
+void checkReadyToTrans()
+{
+  if (!readyToTrans)
+  {
+     if (unlock1 && unlock2 &&unlock3)
+     {
+      readyToTrans = true;
+      Serial.println("Ready to transmit commands");
+     }
+     else
+     {
+      Serial.println("Transmit commands locked");
+      pingHCstate();
+     }
+  }
+  else
+  {
+    Serial.println("Ready to transmit commands");
+  }
+}
+void checkReadyToFill()
+{
+  if (!readyToFill)
+  {
+      pingMCstate();
+      //read whats on the radio
+      radio_recieve(LoRaBuf);
+      CircularBuffer<uint8_t, BUFFER_SIZE> radPac = parse_packet(LoRaBuf);
+      readPacket(radPac);
+       pingGSstate();
+      //read whats on the radio
+      radio_recieve(LoRaBuf);
+       radPac = parse_packet(LoRaBuf);
+      readPacket(radPac);
+      if (readyToTrans && GSready && MCready)
+      {
+        Serial.println("ready to fill");
+      }
+      else
+      {
+        Serial.println("Fill locked");
+      }
+      
+  }
+  else
+  {
+    Serial.println("Ready to fill");
+  }
+}
+void checkReadyToLaunch()
+{
+  if (!readyToLaunch)
+  {
+      pingMCstate();
+      //read whats on the radio
+      radio_recieve(LoRaBuf);
+      CircularBuffer<uint8_t, BUFFER_SIZE> radPac = parse_packet(LoRaBuf);
+      readPacket(radPac);
+       pingGSstate();
+      //read whats on the radio
+      radio_recieve(LoRaBuf);
+      radPac = parse_packet(LoRaBuf);
+      readPacket(radPac);
+      if (readyToFill && feedDisconn && tankFull && readyToTrans)
+      {
+        Serial.println("ready to launch");
+      }
+      else
+      {
+        Serial.println("Launch Locked");
+      }
+      
+  }
+  else
+  {
+    Serial.println("Ready to launch");
+  }
+}
+
+
+ /*functions to ping GS and MC states, and all */
+ void pingMCstate()
+ {
+     rf95.send(PING_STATE_PACKET_MC, 7);
+     rf95.waitPacketSent(200);
+     
+ }
+ void pingGSstate()
+ {
+  rf95.send(PING_STATE_PACKET_GS, 7);
+  rf95.waitPacketSent(200);
+ }
+ void pingHCstate()
+ {
+  if (readyToLaunch)
+  {
+    Serial.println("Launch Unlocked");
+  }
+  else if (readyToFill)
+  {
+    Serial.println("Filling Unlocked");
+  }
+  else if (readyToTrans)
+  {
+    Serial.println("Transmitting Commands Unlocked");
+  }
+  else
+  {
+  if (unlock3)
+  {
+    Serial.print("Unlocked lock 3");
+  }
+  if (unlock2)
+  {
+    Serial.println("Unlocked lock 2");
+  }
+  if (unlock1)
+  {
+    Serial.println("Unlocked lock 1");
+  }
+  if (!(unlock1 || unlock2 || unlock3))
+  {
+    Serial.println("All locked");
+  }
+  }
+ }
+ void pingAll()
+ {
+  Serial.println("Pinged ALL:");
+  pingHCstate();
+  pingMCstate();
+  pingGSstate();
+ }
+

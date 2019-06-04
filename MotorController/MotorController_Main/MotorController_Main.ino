@@ -4,13 +4,13 @@
 #include <RH_RF95.h>
 //#include <packet_interpret.h>
 
-#include <Commands.h>
+#include <MC_Commands.h>
 
 
 
 
 
-using namespace Commands;
+using namespace MC_Commands;
 using namespace LoRa;
 using namespace User;
 
@@ -47,7 +47,7 @@ void setup() {
   // put your setup code here, to run once:
   UserInput.begin(BAUD); //begin comms for user inputting (Serial)
 
-  Serial.println("2019 Rocketry at VT Launch Control System");
+  //Serial.println("2019 Rocketry at VT Launch Control System");
 
 
 
@@ -255,6 +255,8 @@ void actOn(uint8_t packdata[], int psize)
   if (sameAs(packdata, LAUNCH_PACKET, 7, psize))
   {
     Serial.println("MC LAUNCH");
+   
+    
  
   }
 
