@@ -77,7 +77,7 @@ void setup() {
   // put your setup code here, to run once:
   UserInput.begin(BAUD); //begin comms for user inputting (Serial)
 
-  Serial.println("2019 Rocketry at VT Launch Control System");
+  Serial.println("2019 Rocketry at VT Launch Control System: Host");
 
 
 
@@ -410,29 +410,41 @@ void packetBuilder(uint8_t packet){
     case PING_STATE_All: 
   
                     pingAll();
+                    Serial.println("Pinged State for ALL");
                        
                      break;
     case PING_STATE_MC: 
 
                      pingMCstate();
+                     Serial.println("Pinged MC State");
                      break;
                        
     case PING_STATE_GS: 
    
   
                      pingGSstate();
+                     Serial.println("Pinged GS State");
                      break;
 
     case PING_STATE_HC:
     
                     pingHCstate();
+                    Serial.println("Pinged HC State");
                     break;
                
             
     case FILL: 
-    
+                      checkReadyToFill();
+                      if (readyToFill)
+                      {
                      rf95.send(FILL_PACKET, 7);
                      rf95.waitPacketSent(200);
+                     Serial.println("Sent Fill Command");
+                      }
+                      else
+                      {
+                        Serial.println("Fill Locked");
+                      }
                      break;
     case DISCONNECT_FILL: 
     
@@ -447,6 +459,22 @@ void packetBuilder(uint8_t packet){
    
  
                      break;
+    case MAKE_READY:
+                   checkReadyToTrans();
+                   if (readyToTrans)
+                   {
+                    rf95.send(MAKE_READY_PACKET, 7);
+                     rf95.waitPacketSent(200);
+                     Serial.println("Sent Make Ready Command");
+                   }
+                   else
+                   {
+                    Serial.println("DENIED: Transmitting Locked");
+                   }
+                   
+
+
+    
   }
  
 }
@@ -543,12 +571,12 @@ void checkReadyToFill()
   {
       pingMCstate();
       //read whats on the radio
-      radio_recieve(LoRaBuf);
+      //radio_recieve(LoRaBuf);
       CircularBuffer<uint8_t, BUFFER_SIZE> radPac = parse_packet(LoRaBuf);
       readPacket(radPac);
        pingGSstate();
       //read whats on the radio
-      radio_recieve(LoRaBuf);
+      //radio_recieve(LoRaBuf);
        radPac = parse_packet(LoRaBuf);
       readPacket(radPac);
       if (readyToTrans && GSready && MCready)
@@ -592,12 +620,13 @@ void checkReadyToLaunch()
  {
      rf95.send(PING_STATE_PACKET_MC, 7);
      rf95.waitPacketSent(200);
-     
+     radio_recieve(LoRaBuf);
  }
  void pingGSstate()
  {
   rf95.send(PING_STATE_PACKET_GS, 7);
   rf95.waitPacketSent(200);
+  radio_recieve(LoRaBuf);
  }
  void pingHCstate()
  {
@@ -638,12 +667,17 @@ void checkReadyToLaunch()
     Serial.println("All Host Transmisson locks locked");
   }
   }
+  radio_recieve(LoRaBuf);
  }
+ 
  void pingAll()
  {
   Serial.println("Pinged ALL:");
   pingHCstate();
+ 
   pingMCstate();
+  
   pingGSstate();
+
  }
 

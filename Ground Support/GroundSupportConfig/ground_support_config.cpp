@@ -12,3 +12,8 @@ const double LoRa :: FREQ = 434.0;
 /*set user namespace values*/
 
 const unsigned long User :: BAUD = 115200;
+
+/*pin values */
+ const unsigned int Solenoid_Pins :: DIGITAL_PIN1;
+   const unsigned int Solenoid_Pins :: DIGITAL_PIN2;
+ const unsigned int Solenoid_Pins :: DIGITAL_PIN3;

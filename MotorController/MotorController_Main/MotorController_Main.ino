@@ -30,6 +30,8 @@ CircularBuffer<uint8_t, BUFFER_SIZE> parse_serial_packet(CircularBuffer<uint8_t,
 
 void packetBuilder(uint8_t packet);
 
+uint8_t currentState[7];
+
 /**
     Listens for a short time and stores all data from the radio,
     up to the maximum size of the buffer.
@@ -47,9 +49,9 @@ void setup() {
   // put your setup code here, to run once:
   UserInput.begin(BAUD); //begin comms for user inputting (Serial)
 
-  //Serial.println("2019 Rocketry at VT Launch Control System");
+  //Serial.println("2019 Rocketry at VT Launch Control System: Motor Controller");
 
-
+memcpy(currentState, MC_IDLE_STATE, 7);
 
   pinMode(RST_PIN, OUTPUT);
   digitalWrite(RST_PIN, HIGH);
@@ -244,7 +246,11 @@ void actOn(uint8_t packdata[], int psize)
   if (sameAs(packdata, PING_STATE_PACKET_MC, 7, psize))
   {
     Serial.println("sent state");
-    rf95.send(MC_FILL_STATE, sizeof(MC_FILL_STATE));
+    for (int i = 0; i < 7; i++)
+    {
+      Serial.println(currentState[i], HEX);
+    }
+    rf95.send(currentState, 7);
     rf95.waitPacketSent(200);
   }
   if (sameAs(packdata, FILL_PACKET, 7, psize))

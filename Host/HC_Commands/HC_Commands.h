@@ -15,11 +15,12 @@
 */
 namespace HC_Commands
 {
-    const uint8_t SHOW_COMMANDS = 0x03; //print commands to Serial for user to see, HC
-     const uint8_t UNLOCK1 = 0x04; //unlock 1 for transmitting, HC
-     const uint8_t UNLOCK2 = 0x05; //unlock 2 for transmitting, HC
-     const uint8_t UNLOCK3 = 0x06; //unlock 3, if all unlocked allow for certian commands to be sent, HC
-    const uint8_t PING_STATE_All = 0x07; //PING STATE, ALL
+    /*IMPLEMENT THESES IN HC */
+    const uint8_t SHOW_COMMANDS = 0x03; //print commands to Serial for user to see, HC IMPLEMENTED
+     const uint8_t UNLOCK1 = 0x04; //unlock 1 for transmitting, HC //IMPLEMENTED
+     const uint8_t UNLOCK2 = 0x05; //unlock 2 for transmitting, HC //IMPLEMENTED
+     const uint8_t UNLOCK3 = 0x06; //unlock 3, if all unlocked allow for certian commands to be sent, HC //IMPLEMENTED
+    const uint8_t PING_STATE_All = 0x07; //PING STATE, ALL //IMPLEMENTED
 
      const uint8_t FILL = 0x08; //ALL
      const uint8_t DISCONNECT_FILL = 0x09; //GS
@@ -51,14 +52,14 @@ namespace HC_Commands
        const uint8_t PING_VENT_POS = 0x41;
        const uint8_t CLOSE_VENT = 0x42;
        const uint8_t PING_PRESET_PRES = 0X43;
-       const uint8_t RESUME = 0X97;
+       const uint8_t RESUME = 0x97;
        const uint8_t ENABLE_WARNINGS = 0x98;
        const uint8_t DISABLE_WARNINGS = 0x99;
        const uint8_t DECLARE_TANK_FULL = 0x96;
        const uint8_t DECLARE_TANK_NOT_FULL = 0x93;
        const uint8_t DISABLE_FLOAT_SWITCH = 0x95;
        const uint8_t ENABLE_FLOAT_SWITCH = 0x94;
-
+       const uint8_t = CHECK_CONTINUITY = 0x92;
 
 
 
@@ -74,7 +75,9 @@ namespace HC_Commands
 *stuff to send to MC and GS
 */
 
-     const uint8_t PING_STATE_PACKET_MC[7] = {0xAA, 0x14, 0x01, 0xAC, 0x019, 0xAB, 0xAD};
+/*IMPLEMENT THESE IN ALL*/
+
+     const uint8_t PING_STATE_PACKET_MC[7] = {0xAA, 0x14, 0x01, 0xAC, 0x19, 0xAB, 0xAD};
      const uint8_t PING_STATE_PACKET_GS[7] = {0xAA, 0x14, 0x01, 0xAC, 0x20, 0xAB, 0xAD};
      const uint8_t FILL_PACKET[7] = {0xAA, 0x14, 0x01, 0xAC, 0x08, 0xAC, 0xAD};
     const uint8_t DISCONNECT_FILL_PACKET[7] = {0xAA, 0x14, 0x01, 0xAC, 0x09, 0xDD, 0xDC};
@@ -106,6 +109,7 @@ namespace HC_Commands
        const uint8_t DECLARE_TANK_NOT_FULL_PACKET[7] = {0xAA, 0x14, 0x01, 0xAC, 0x93, 0x4A, 0x2A};
        const uint8_t DISABLE_FLOAT_SWITCH_PACKET[7] = {0xAA, 0x14, 0x01, 0xAC, 0x95, 0x1A, 0x2D};
        const uint8_t ENABLE_FLOAT_SWITCH_PACKET[7] = {0xAA, 0x14, 0x01, 0xAC, 0x94, 0x9A, 0x9A};
+       const uint8_t CHECK_CONT_PACKET[7] = {0xAA, 0x14, 0x01, 0xAC, 0x91, 0x2A, 0x9A};
 
 
     /*
@@ -133,12 +137,16 @@ namespace HC_Commands
       const uint8_t AUTO_PAUSE_ENABLED[7] = {0xAA, 0x14, 0x01, 0xCC, 0x56, 0xC2, 0xD3};
       const uint8_t AUTO_PAUSE_DISABLED[7] = {0xAA, 0x14, 0x01, 0xCC, 0x57, 0xB2, 0xD3};
       const uint8_t MC_AUTO_PAUSED[7] = {0xAA, 0x14, 0x01, 0xCC, 0x58, 0xC2, 0xD3};
-      const uint8_t WARNINGS_ENABLED[7] = {0xAA, 0x14, 0x01, 0xCC, 0x59, 0xC5, 0xD};
+      const uint8_t WARNINGS_ENABLED[7] = {0xAA, 0x14, 0x01, 0xCC, 0x59, 0xC5, 0xD8};
       const uint8_t WARNINGS_DISABLED[7] = {0xAA, 0x14, 0x01, 0xCC, 0x60, 0xB5, 0xD5};
       const uint8_t MC_MAN_PAUSED[7] = {0xAA, 0x14, 0x01, 0xCC, 0x61, 0xE5, 0xB5};
       const uint8_t MC_OVER_TEMP_WARNING[7] = {0xAA, 0x14, 0x01, 0xCC, 0x70, 0xE1, 0xC5};
       const uint8_t MC_OVER_PRES_WARNING[7] = {0xAA, 0x14, 0x01, 0xCC, 0x71, 0xD1, 0xD5};
       const uint8_t MC_LOW_PRES_DROP_WARNING[7] = {0xAA, 0x14, 0x01, 0xCC, 0x72, 0xB1, 0xB5};
+      const uint8_t MC_CONTINUITY_GOOD[7] = {0xAA, 0x14, 0x01, 0xCC, 0x90, 0xB8, 0xB5};
+      const uint8_t MC_NO_CONT_VENT[7] = {0xAA, 0x14, 0x01, 0xCC, 0x89, 0xB3, 0xB8};
+      const uint8_t MC_NO_CONT_OX_VALVE[7] = {0xAA, 0x14, 0x01, 0xCC, 0x88, 0xC1, 0xC5};
+      const uint8_t MC_NO_CONT_EMATCH[7] = {0xAA, 0x14, 0x01, 0xCC, 0x87, 0xB8, 0xE5};
 
 
 
@@ -155,6 +163,9 @@ namespace HC_Commands
     const uint8_t GS_ABORT_STATE[7] = {0xAA, 0x14, 0x01, 0xF5, 0x62, 0xA3, 0xD4};
     const uint8_t GS_AUTO_PAUSED[7] = {0xAA, 0x14, 0x01, 0xF5, 0x63, 0xA2, 0xD3};
     const uint8_t GS_DISCONNECTED[7] = {0xAA, 0x14, 0x01, 0xF5, 0x64, 0xA9, 0xD1};
+      const uint8_t MC_CONTINUITY_GOOD[7] = {0xAA, 0x14, 0x01, 0xCC, 0x92, 0xB8, 0xB5};
+      const uint8_t GS_NO_CONT_SOLENOID[7] = {0xAA, 0x14, 0x01, 0xF5, 0x86, 0xB4, 0xB4};
+
 
 
 

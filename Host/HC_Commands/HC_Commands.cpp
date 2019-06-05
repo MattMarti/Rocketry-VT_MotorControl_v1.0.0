@@ -46,6 +46,7 @@ void printCommands()
     Serial.println("Declare tank full: 0x00 0x96 0xFF");
     Serial.println("Disable float switch (not reccomended, will override auto fill stops): 0x00 0x95 0xFF");
     Serial.println("Enable float switch (enabled by default): 0x00 0x94 0xFF");
+    Serial.println("Check Continuity on MC and GS Systems");
 
 
 
