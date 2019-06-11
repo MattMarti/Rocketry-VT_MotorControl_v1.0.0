@@ -1,7 +1,11 @@
 #ifndef GROUND_SUPPORT_CONFIG_H_INCLUDED
 #define GROUND_SUPPORT_CONFIG_H_INCLUDED
 
-#define ANALOG_IN A0;
+#define SOL_ANALOG_IN A0
+#define ACT_ANALOG_IN A1
+
+#include <Arduino.h>
+
 /* set up a namespace for the LoRa Radio Items */
 namespace LoRa
 {
@@ -20,12 +24,15 @@ namespace User
 
 }
 
-namespace Solenoid_Pins
+namespace PINS
 {
-    extern const unsigned int DIGITAL_PIN1;
-    extern const unsigned int DIGITAL_PIN2;
-    extern const unsigned int DIGITAL_PIN3;
+    const unsigned int SOL_DIG_PIN1 = 49;
+    const unsigned int SOL_DIG_PIN2 = 45;
+    const unsigned int SOL_DIG_PIN3 = 47;
     //also uses a 5V input, and ground
+
+    const unsigned ACT_DIG_PIN1 = 22;
+    const unsigned ACT_DIG_PIN2 = 23;
 
 }
 

@@ -1,10 +1,11 @@
-#include <ground_support_config.h>
+#include "ground_support_config.h"
 #include <CircularBuffer.h>
 #include <SPI.h>
 #include <RH_RF95.h>
 //#include <packet_interpret.h>
 
-#include <GS_Commands.h>
+#include "GS_Commands.h"
+#include "GS_hardware.h"
 
 
 
@@ -31,6 +32,7 @@ CircularBuffer<uint8_t, BUFFER_SIZE> parse_serial_packet(CircularBuffer<uint8_t,
 void packetBuilder(uint8_t packet);
 
 uint8_t currentState[7]; //current GS state, starts in idle
+uint8_t lastState[7]; //last state before pause
 
 /**
     Listens for a short time and stores all data from the radio,
@@ -42,8 +44,18 @@ void readPacket(CircularBuffer<uint8_t, BUFFER_SIZE> &buffer);
 
 void actOn(uint8_t packdata[], int packSize);
 
+void fillFunc();
+
 boolean sameAs(uint8_t data[], uint8_t target[]);
 
+bool fill = false;
+bool disconn = false;
+
+unsigned long previousTime = 0;
+unsigned long previousTime2 = 0;
+void disconnFunc();
+bool solOn = true;
+uint8_t cont[2] = {0, 0};
 
 void setup() {
   // put your setup code here, to run once:
@@ -51,8 +63,10 @@ void setup() {
 
   Serial.println("2019 Rocketry at VT Launch Control System: Ground Support");
 
-
+pinsOff();
 memcpy(currentState, GS_IDLE_STATE, 7);
+memcpy(lastState, GS_IDLE_STATE, 7);
+
 
   pinMode(RST_PIN, OUTPUT);
   digitalWrite(RST_PIN, HIGH);
@@ -89,6 +103,7 @@ memcpy(currentState, GS_IDLE_STATE, 7);
 }
 
 void loop() {
+  
 
   // put your main code here, to run repeatedly:
 
@@ -112,6 +127,17 @@ void loop() {
   readPacket(fromRadio);
 
 
+  if (fill)
+  {
+    fillFunc();
+  }
+
+  if (disconn)
+  {
+    disconnFunc();
+  }
+
+
 
 
 
@@ -133,10 +159,10 @@ void radio_recieve(CircularBuffer<uint8_t, BUFFER_SIZE> &buffer)
   {
     if (rf95.recv(buf, &len))
     {
-      Serial.println("Got Reply: ");
+      //Serial.println("Got Reply: ");
       for (int i = 0; i < len && buffer.available() > 0; i++)
       {
-        Serial.println(buf[i], HEX);
+      //  Serial.println(buf[i], HEX);
         buffer.push(buf[i]);
       }
     }
@@ -153,7 +179,7 @@ CircularBuffer<uint8_t, BUFFER_SIZE> parse_packet(CircularBuffer<uint8_t, BUFFER
 //  }
   while (parsing && buf.size() > 0)
   {
-    Serial.println("in firstwhile");
+    //Serial.println("in firstwhile");
     while (buf.size() > 0 && buf.first() != 0xAA)
     {
       buf.shift();
@@ -220,10 +246,10 @@ void readPacket(CircularBuffer<uint8_t, BUFFER_SIZE> &buffer)
     }
     checkSumBytes[0] = toSend[(4 + dataLen)];
     checkSumBytes[1] = toSend[(5 + dataLen)];
-    Serial.println("Fire Torpedoes!");
+   // Serial.println("Fire Torpedoes!");
 
-    Serial.println(toSend[0], HEX);
-    Serial.println(packData[0], HEX);
+   // Serial.println(toSend[0], HEX);
+   // Serial.println(packData[0], HEX);
 
     //interpret packet with another function
 
@@ -244,22 +270,194 @@ void readPacket(CircularBuffer<uint8_t, BUFFER_SIZE> &buffer)
 
 void actOn(uint8_t packdata[], int psize)
 {
-  if (sameAs(packdata, PING_STATE_PACKET_GS, 7, psize))
+  if (sameAs(packdata, PING_STATE_PACKET_GS, psize, 7))
   {
     Serial.println("sent state");
     rf95.send(currentState, 7);
     rf95.waitPacketSent(200);
   }
-  if (sameAs(packdata, FILL_PACKET, 7, psize))
+  if (sameAs(packdata, FILL_PACKET, psize, 7))
   {
     Serial.println("GS FILL");
+    memcpy(currentState, GS_FILL_STATE, 7);
+    rf95.send(currentState, 7);
+    rf95.waitPacketSent(200);
+    fill = true;
+    
     
   }
-  if (sameAs(packdata, LAUNCH_PACKET, 7, psize))
+  if (sameAs(packdata, LAUNCH_PACKET, psize, 7))
   {
+    solenoidOff();
+    actIn();
+    memcpy(currentState, GS_LAUNCH_STATE, 7);
     Serial.println("GS LAUNCH");
    
   }
+
+
+     if (sameAs(packdata, MAKE_READY_PACKET, psize, 7))
+  {
+    pinsOff(); //everything off
+    checkCont(cont);
+    if ((cont[0] == 1) && (cont[1] == 1))
+    {
+       memcpy(currentState, GS_READY_STATE, 7);
+       Serial.println("READY");
+    }
+    else
+    {
+      if (cont[0] == 0)
+      {
+        memcpy(currentState, GS_NO_CONT_SOLENOID, 7);
+            rf95.send(currentState, 7);
+    rf95.waitPacketSent(200);
+        
+      }
+      if (cont[1] == 0)
+      {
+          memcpy(currentState, GS_NO_CONT_ACT, 7);
+            rf95.send(currentState, 7);
+    rf95.waitPacketSent(200);
+      }
+    }
+    
+   
+  }
+     if (sameAs(packdata, PAUSE_PACKET, psize, 7))
+  {
+    pinsOff();
+    memcpy(lastState, currentState, 7);
+    memcpy(currentState, GS_PAUSED, 7);
+  
+    Serial.println("PAUSE");
+   
+  }
+
+     if (sameAs(packdata, ABORT_PACKET, 7, psize))
+  { 
+    solenoidOff();
+    actIn();
+    memcpy(currentState, GS_ABORT_STATE, 7);
+    rf95.send(currentState, 7);
+    rf95.waitPacketSent(200);
+    Serial.println("Aborted");
+   
+  }
+
+     if (sameAs(packdata, RESUME_PACKET, 7, psize))
+  {
+    memcpy(currentState, lastState, 7);
+     rf95.send(currentState, 7);
+    rf95.waitPacketSent(200);
+    Serial.println("RESUME AVAILABLE");
+   
+  }
+
+     if (sameAs(packdata, DECLARE_TANK_FULL_PACKET, 7, psize))
+  {
+    solenoidOff();
+    memcpy(currentState, GS_TANK_FULL_STATE, 7);
+     rf95.send(currentState, 7);
+    rf95.waitPacketSent(200);
+    Serial.println("TANK DECLARED FULL");
+   
+  }
+
+     if (sameAs(packdata, DECLARE_TANK_NOT_FULL_PACKET, 7, psize))
+  {
+    
+    pinsOff();
+     memcpy(currentState, GS_READY_STATE, 7);
+     rf95.send(currentState, 7);
+    rf95.waitPacketSent(200);
+    Serial.println("DECLARED TANK NOT FULL");
+   
+  }
+
+     if (sameAs(packdata, CHECK_GS_CONTINUITY_PACKET, 7, psize))
+  {
+    Serial.println("CHECKING CONTINUITY");
+    checkCont(cont);
+    if ((cont[0] == 1) && (cont[1] == 1))
+    {
+       rf95.send(GS_CONTINUITY_GOOD, 7);
+    rf95.waitPacketSent(200);
+       Serial.println("Continutity Good");
+    }
+    else
+    {
+      if (cont[0] == 0)
+      {
+        
+            rf95.send(GS_NO_CONT_SOLENOID, 7);
+    rf95.waitPacketSent(200);
+        
+      }
+      if (cont[1] == 0)
+      {
+         
+            rf95.send(GS_NO_CONT_ACT, 7);
+    rf95.waitPacketSent(200);
+      }
+    }
+   
+  }
+
+       if (sameAs(packdata, MC_TANK_FULL_STATE, 7, psize))
+  {
+    solenoidOff();
+     memcpy(currentState, GS_TANK_FULL_STATE, 7);
+     rf95.send(currentState, 7);
+    rf95.waitPacketSent(200);
+    
+    Serial.println("MC Delcared Tank Full");
+   
+  }
+
+       if (sameAs(packdata, MC_ABORT_STATE, 7, psize))
+  {
+     solenoidOff();
+    actIn();
+    memcpy(currentState, GS_ABORT_STATE, 7);
+    rf95.send(currentState, 7);
+    rf95.waitPacketSent(200);
+    Serial.println("Aborting based on MC abort state");
+   
+  }
+
+       if (sameAs(packdata, MC_AUTO_PAUSED, 7, psize))
+  {
+    solenoidOff();
+    actIn();
+     memcpy(lastState, currentState, 7);
+    memcpy(currentState, GS_DISCONNECTING, 7);
+    rf95.send(currentState, 7);
+    rf95.waitPacketSent(200);
+    Serial.println("DISCONNECTING FILL");
+    disconn = true;
+   
+  }
+
+
+
+        if (sameAs(packdata, DISCONNECT_FILL_PACKET, 7, psize))
+  {
+    
+    memcpy(currentState, GS_PAUSED, 7);
+    rf95.send(currentState, 7);
+    rf95.waitPacketSent(200);
+    Serial.println("PAUSED FROM MC AUTO PAUSE");
+   
+  }
+
+
+  
+
+  
+
+  
+  
 
     
 }
@@ -269,7 +467,7 @@ boolean sameAs(uint8_t data[], uint8_t target[], int L1, int L2)
 {
 
  // Serial.println(sizeof(data), DEC);
-  if (sizeof(data) != sizeof(target))
+  if (L1 != L2)
 
 
   {
@@ -288,3 +486,40 @@ boolean sameAs(uint8_t data[], uint8_t target[], int L1, int L2)
     return true;
   }
 }
+
+
+void fillFunc()
+{
+  unsigned long interval = 30000; //30 seconds
+  unsigned long currTime = millis();
+  if ((currTime - previousTime) > interval)
+  {
+    previousTime = currTime;
+    if (solOn)
+    {
+      solenoidOff();
+      solOn = false;
+    }
+    else
+    {
+      solenoidOn();
+      solOn = true;
+    }
+  }
+}
+
+void disconnFunc()
+{
+  unsigned long interval = 45000; //45 seconds
+  unsigned long currTime = millis();
+  if ((currTime - previousTime2) > interval)
+  {
+    fill = false;
+     memcpy(currentState, GS_DISCONNECTED, 7);
+    rf95.send(currentState, 7);
+    rf95.waitPacketSent(200);
+    Serial.println("DISCONNECTED FILL");
+    
+  }
+}
+

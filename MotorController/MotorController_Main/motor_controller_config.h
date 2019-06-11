@@ -2,15 +2,20 @@
 #define MOTOR_CONTROLLER_CONFIG_H_INCLUDED
 
 #include <Arduino.h>
+#include <Encoder.h>
+#include <stdio.h>
 
 
 #define UserInput Serial
+#define LOG Serial2
 
 #define VENT_CONT_PIN A0
 #define OX_VALVE_CONT_PIN A8
 #define EMATCH_CONT_PIN A4
 #define CHAMBER_TRANS_INPUT A2
-
+#define OX_TRANS_INPUT A5
+#define INJ_TEMP_INPUT A7
+#define NOZ_TEMP_INPUT A3
 
 /* set up a namespace for the LoRa Radio Items */
 namespace LoRa
@@ -40,6 +45,9 @@ namespace MC_Pins
     const unsigned int EMATCH_PIN1 = 27;
     const unsigned int EMATCH_PIN2 = 33;
     const unsigned int EMATCH_PIN3 = 43;
+    
+    const unsigned int CH_A = 10;
+    const unsigned int CH_B = 11;
 
 
 }

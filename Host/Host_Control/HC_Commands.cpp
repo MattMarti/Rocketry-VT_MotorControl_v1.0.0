@@ -8,9 +8,9 @@ void printCommands()
 {
     Serial.println("\nThe following commands are available: ");
     Serial.println("Show Commands: 0x00 0x03 0xFF");
-    Serial.println("Unlock1: 0x00 0x04 0xFF");
-    Serial.println("Unlock2: 0x00 0x05 0xFF");
-    Serial.println("Unlock3: 0x00 0x06 0xFF");
+   // Serial.println("Unlock1: 0x00 0x04 0xFF");
+   // Serial.println("Unlock2: 0x00 0x05 0xFF");
+   // Serial.println("Unlock3: 0x00 0x06 0xFF");
     Serial.println("Ping the States of All Systems: 0x00 0x07 0xFF");
     Serial.println("Start Tank Filling: 0x00 0x08 0xFF");
     Serial.println("Disconnect Fill Line: 0x00 0x09 0xFF");
@@ -21,7 +21,7 @@ void printCommands()
     Serial.println("Make all Motor Controller and Ground Support Ready: 0x00 0x23 0xFF");
     Serial.println("Pause the sequence (close all valves): 0x00 0x24 0xFF");
     Serial.println("Abort (dump nitrous, close valves, disconnect fill): 0x00 0x25 0xFF");
-    Serial.println("Set the Vent to Pressure: 0x00 0x26 0xFF");
+   // Serial.println("Set the Vent to Pressure: 0x00 0x26 0xFF");
     Serial.println("Manually Command Venting: 0x00 0x27 0xFF");
     Serial.println("Ping Oxidizer Tank Pressure: 0x00 0x28 0xFF");
     Serial.println("Print an Explanation of Launch Procedure: 0x00 0x29 0xFF");
@@ -35,18 +35,22 @@ void printCommands()
     Serial.println("Disable Auto-Pause for non-nominal conditions: 0x00 0x37 0xFF");
     Serial.println("Ping All System Settings: 0x00 0x38 0xFF");
     Serial.println("Ping Motor Controller Settings: 0x00 0x39 0xFF");
-    Serial.println("Ping Ground Support Settings: 0x00 0x40 0xFF");
-    Serial.println("Ping Vent Valve Position: 0x00 0x41 0xFF");
+    //Serial.println("Ping Ground Support Settings: 0x00 0x40 0xFF");
+    //Serial.println("Ping Vent Valve Position: 0x00 0x41 0xFF");
     Serial.println("Close Vent Valve: 0x00 0x42 0xFF");
-    Serial.println("Ping the Vent Stop Pressure: 0x00 0x43 0xFF");
-    Serial.println("Resume (if was paused): 0x00 0x97 0xFF");
+   // Serial.println("Ping the Vent Stop Pressure: 0x00 0x43 0xFF");
+    Serial.println("Resume (if was paused), gives last command: 0x00 0x97 0xFF");
     Serial.println("Enable Warnings for non-nominal conditions: 0x00 0x98 0xFF");
     Serial.println("Disable Warnings for non-nominal conditions: 0x00 0x98 0xFF");
     Serial.println("Declare tank not full (not reccomended, will override auto fill stops and allow to refill): 0x00 0x93 0xFF");
     Serial.println("Declare tank full: 0x00 0x96 0xFF");
     Serial.println("Disable float switch (not reccomended, will override auto fill stops): 0x00 0x95 0xFF");
     Serial.println("Enable float switch (enabled by default): 0x00 0x94 0xFF");
-    Serial.println("Check Continuity on MC and GS Systems");
+    Serial.println("Check Continuity on MC: 0x00 0x91 0xFF");
+     Serial.println("Check Continuity on GS: 0x00 0x92 0xFF");
+
+    Serial.println("pausing will shut off all but vent valve");
+    Serial.println("resuming will send you the last command, but must send that again to resume");
 
 
 
