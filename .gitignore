@@ -1,0 +1,9 @@
+build
+bin
+log/*
+!log/.gitkeep
+in.bin
+out.bin
+html
+latex
+.lastlog
